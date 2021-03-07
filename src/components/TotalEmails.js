@@ -16,17 +16,16 @@ export default function TotalEmails() {
     },[]);
   
     function getStat() {
-      var raw = JSON.stringify(genieInfo.uInfo);
       var args = {
         method: "POST",
         mode: 'cors',
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "authorization":"Bearer "+genieInfo.uInfo.userAccess_Token
         },
-        body: raw,
       };
   
-      var url = "http://localhost:5000/api/v1/totalEmails";
+      var url = "http://localhost:5000/api/v0/totalEmails";
       fetch(url, args)
       .then(res => res.json()).then(data => {
         if (genieInfo.userTotalEmail !== data.messagesTotal){
@@ -39,7 +38,7 @@ export default function TotalEmails() {
         <>
         {!!genieInfo.userIsLoggedIn ? (
         <div className="col-md-12 col-lg-3">
-        <div className="card gx-5 p-3 m-3">
+        <div className="card gx-5 p-3 m-3 glass">
               <span className="badge bg-primary fs-5" style={{width:"max-content",margin:"auto"}}>{genieInfo.userTotalEmail || ''}</span>
             <p className="fs-5 fw-bold">Total Emails</p>
             </div>
