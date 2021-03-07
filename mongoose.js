@@ -1,15 +1,18 @@
 'use strict';
 
 var mongoose = require('mongoose');
+const { flushSync } = require('react-dom');
+require("dotenv").config();
+
 var Schema = mongoose.Schema;
 
 module.exports = function () {
 
-    var db = mongoose.connect('mongodb://localhost:27017/twitter-demo',{useCreateIndex: true,useUnifiedTopology: true,useNewUrlParser: true});
+    var db = mongoose.connect(process.env.URI,{useCreateIndex: true,useUnifiedTopology: true,useNewUrlParser: true});
 
     var UserSchema = new Schema({
         fullName:{
-            type:String,required:true
+            type:String,required:false
         },
         profilepicture:{
             type:String

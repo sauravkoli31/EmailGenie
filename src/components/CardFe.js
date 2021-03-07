@@ -6,7 +6,7 @@ function CardFe() {
 
   return (
     <div className="col-12" >
-    <div className="card gx-5 p-3 m-3" >
+    <div className="card gx-5 p-3 m-3 glass" >
 
           <img src={genieInfo.uInfo.userImageUrl} className="card-img-top" />
           <div className="card-body">

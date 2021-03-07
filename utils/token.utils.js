@@ -1,9 +1,11 @@
 var jwt = require('jsonwebtoken');
+require("dotenv").config();
 
 var createToken = function(auth) {
     return jwt.sign({
-            id: auth.id
-        }, 'my-secret',
+            id: auth._id,
+            user: auth.email
+        }, process.env.jwtToken,
         {
             expiresIn: 60 * 120
         });
@@ -11,7 +13,8 @@ var createToken = function(auth) {
 
 module.exports = {
   generateToken: function(req, res, next) {
-      req.token = createToken(req.auth);
+    //   console.log(req.user);
+      req.token = createToken(req.user);
       return next();
   },
   sendToken: function(req, res) {
