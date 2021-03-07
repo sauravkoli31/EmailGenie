@@ -8,17 +8,14 @@ export const emailIdSlice = createSlice({
   name: "emailId",
   initialState: {
     datapulled: initialState?.datapulled || false,
-    data: initialState?.data || [],
   },
   reducers: {
-    carpetHasBeenPulled: (state, action) => {
+    carpetHasBeenPulled: (state) => {
       state.datapulled = true;
-      state.data = action.payload;
       localStorage.setItem("aboo", btoa(JSON.stringify(state)));
     },
     carpetCrashed: (state) => {
       state.datapulled = false;
-      state.data = [];
       localStorage.removeItem("aboo");
     },
   },

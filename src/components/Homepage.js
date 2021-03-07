@@ -3,8 +3,8 @@ import emailBanner from "../assets/2710476-01.png";
 
 function Homepage() {
   return (
-    <div className="container bg-light rounded p-2">
-      <div className="row ">
+    <div className="container p-2 glass">
+      <div className="row">
         <div className="col-lg-6 my-auto">
           <div className="my-3">
           <h2 className="display-3 ">Email Genie</h2>

@@ -9,6 +9,7 @@ export const userinfoSlice = createSlice({
     initialState:{
         uInfo:
         {
+            userId: initialUser?.uInfo.userId || null,
             userName: initialUser?.uInfo.userName || null,
             userEmail: initialUser?.uInfo.userEmail || null,
             userImageUrl:initialUser?.uInfo.userImageUrl || null,
@@ -19,16 +20,18 @@ export const userinfoSlice = createSlice({
     },
     reducers:{
         genieLogIn: (state,action) =>{
-            // console.log(action.payload);
+            console.log('In User Info Reducer',action.payload);
             state.userIsLoggedIn = true;
-            state.uInfo.userName = action.payload.profileObj.name;
-            state.uInfo.userEmail = action.payload.profileObj.email;
-            state.uInfo.userImageUrl = action.payload.profileObj.imageUrl;
-            state.uInfo.userAccess_Token = action.payload.accessToken;
+            state.uInfo.userId = action.payload.user.id;
+            state.uInfo.userName = action.payload.user.fullName;
+            state.uInfo.userEmail = action.payload.user.email;
+            state.uInfo.userImageUrl = action.payload.user.profilepicture;
+            state.uInfo.userAccess_Token = action.payload.token;
             localStorage.setItem('aladin', btoa(JSON.stringify(state)));
         },
         genieLogOut: (state)=>{
             state.userIsLoggedIn = false;
+            state.uInfo.userId = null;
             state.uInfo.userName = null;
             state.uInfo.userEmail = null;
             state.uInfo.userImageUrl = null;
