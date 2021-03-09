@@ -11,6 +11,7 @@ var index = require("./routes/index");
 
 const { Kafka, CompressionTypes, logLevel } = require("kafkajs");
 
+var Messages = require('./models/messages.model');
 var User = require("mongoose").model("User");
 var jwt = require("jsonwebtoken");
 require("dotenv").config();
@@ -18,7 +19,7 @@ require("dotenv").config();
 //Kafka Config
 const host = process.env.KAFKAURI;
 const kafka = new Kafka({
-  logLevel: logLevel.DEBUG,
+  logLevel: logLevel.ERROR,
   brokers: [`${host}:9092`],
   clientId: "example-producer",
 });
@@ -102,17 +103,30 @@ function getProfile(email, accessToken) {
 //Test variable
 test = 0;
 
-const sendMessage = (test1) => {
+const sendMessage = (kafkamessage) => {
   return producer.send({
     topic,
     compression: CompressionTypes.GZIP,
-    messages: Array(test1)
+    messages: Array(kafkamessage)
   })
   .then(console.log)
   .catch((e) =>
     console.error(`[example/producer] ${e.message}`, e)
   );
 }
+
+const createMessage = (messagestemp,email,accessToken) => {
+  return new Promise((resolve,reject) => {
+    var messageIds = messagestemp.messages.map((m) => {return m.id});
+    var test1 = {
+      key:messageIds.toString(),
+      value:email+"|"+accessToken,
+    }
+    sendMessage(test1).then(() => resolve('Done'));
+  })
+
+}
+
 
 //Get all emails
 function getAllEmails(email, accessToken, pageToken, allFiles = []) {
@@ -131,20 +145,12 @@ function getAllEmails(email, accessToken, pageToken, allFiles = []) {
         }
         const newarr = async () => {
           return Promise.all(
+            createMessage(data,email,accessToken),
             data.messages.map(async (dd) => {
-              test += 1;
-              const tempStore = {};
               tempStore.id = dd.id;
-              var test1 = {
-                key:dd.id,
-                value:email+"|"+accessToken,
-              }
-            
-              sendMessage(test1);
-              console.log(test, tempStore);
               allFiles.push(tempStore);
               return tempStore;
-            })
+            }),
           );
         };
         newarr().then((data) => {
@@ -222,21 +228,29 @@ app.post("/api/v0/totalEmails", authenticateJWT, async (req, res) => {
 });
 
 app.post("/api/v1/Emails", authenticateJWT, (req, res) => {
-  // getAllEmails(req.body.userEmail,req.body.userAccess_Token, "","").then((response) =>
-  //   console.log(response)
-  // );
-
   getAllEmails(req.id.user, req.aToken, "", []).then((response) => {
     console.log(response);
   });
   res.sendStatus(200).json({"status":"queued"});
 });
 
-app.post("/api/v1/EmailMessages", authenticateJWT, (req, res) => {
-  getAllEmails(req.id.user, req.aToken, "", []).then((response) => {
-    res.json(response);
-  });
-  console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+app.get("/api/v1/EmailMessages", authenticateJWT,async (req, res) => {
+  var Data = await Messages.find({email:req.id.user}).select('_id email_uid fromAddr rootDomain');
+  var uniqueRootDomains = Data.map((item) => item.rootDomain)
+        .filter((value, index, self) => self.indexOf(value) === index);
+
+        var allData = uniqueRootDomains.map(rD => {
+          var temporaryArr = {};
+          temporaryArr.rootDomain = rD;
+          temporaryArr.emailFromSubDomain = Data.filter((item) => item.rootDomain == rD);
+          temporaryArr.count = Object.keys(temporaryArr.emailFromSubDomain).length;
+          return temporaryArr;
+        })
+        allData.sort(function (a, b) {
+          return b.count - a.count;
+        });
+  res.json(allData);
+
 });
 
 app.listen(5000, () => console.log(`App listening on port ${5000}!`));

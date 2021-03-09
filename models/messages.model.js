@@ -2,17 +2,21 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const messagesSchema = new Schema({
-  messageId: {
+  email: {
     type: String,
     required: true
   },
-  fromAddress: {
+  email_uuid: {
     type: String,
     required: false
   },
-  emailId:{
-      type:String,
-      required:true
+  fromAddr: {
+    type: String,
+    require:false
+  },
+  rootDomain: {
+    type: String,
+    require:false
   }
 }, {
   timestamps: { createdAt: 'created_at' },

@@ -27,3 +27,7 @@
   ) !important;
   backdrop-filter: blur(0.15rem);
 }
+
+.more-blur {
+  backdrop-filter: blur(0.25rem) !important;
+}
