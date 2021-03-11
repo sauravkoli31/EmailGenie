@@ -7,13 +7,13 @@ const cookieSession = require("cookie-session");
 const fetch = require("node-fetch");
 const path = require("path");
 
-var index = require("./routes/index");
+let index = require("./routes/index");
 
 const { Kafka, CompressionTypes, logLevel } = require("kafkajs");
 
-var Messages = require('./models/messages.model');
-var User = require("mongoose").model("User");
-var jwt = require("jsonwebtoken");
+let Messages = require("./models/messages.model");
+let User = require("mongoose").model("User");
+let jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 //Kafka Config
@@ -29,7 +29,7 @@ const topic = "topic-test";
 
 //Initialize Producer and connect to it.
 const producer = kafka.producer();
-producer.connect()
+producer.connect();
 
 const authenticateJWT = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -54,7 +54,7 @@ const authenticateJWT = (req, res, next) => {
   }
 };
 
-var corsOption = {
+let corsOption = {
   origin: true,
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true,
@@ -100,42 +100,39 @@ function getProfile(email, accessToken) {
   });
 }
 
-//Test variable
+//Test letiable
 test = 0;
 
 const sendMessage = (kafkamessage) => {
-  return producer.send({
-    topic,
-    compression: CompressionTypes.GZIP,
-    messages: Array(kafkamessage)
-  })
-  .then(console.log)
-  .catch((e) =>
-    console.error(`[example/producer] ${e.message}`, e)
-  );
-}
+  return producer
+    .send({
+      topic,
+      compression: CompressionTypes.GZIP,
+      messages: Array(kafkamessage),
+    })
+    .then(console.log)
+    .catch((e) => console.error(`[example/producer] ${e.message}`, e));
+};
 
-const createMessage = (messagestemp,email,accessToken) => {
-  return new Promise((resolve,reject) => {
-    var messageIds = messagestemp.messages.map((m) => {return m.id});
-    var test1 = {
-      key:messageIds.toString(),
-      value:email+"|"+accessToken,
-    }
-    sendMessage(test1).then(() => resolve('Done'));
-  })
-
-}
-
+const createMessage = (messagestemp, email, accessToken) => {
+  return new Promise((resolve, reject) => {
+    let messageIds = messagestemp.messages.map((m) => {
+      return m.id;
+    });
+    let test1 = {
+      key: messageIds.toString(),
+      value: email + "|" + accessToken,
+    };
+    sendMessage(test1).then(() => resolve("Done"));
+  });
+};
 
 //Get all emails
 function getAllEmails(email, accessToken, pageToken, allFiles = []) {
   return new Promise((resolve, reject) => {
-    if (pageToken) {
-      link = `https://gmail.googleapis.com/gmail/v1/users/${email}/messages?pageToken=${pageToken}&access_token=${accessToken}`;
-    } else {
-      link = `https://gmail.googleapis.com/gmail/v1/users/${email}/messages?access_token=${accessToken}`;
-    }
+    link = `https://gmail.googleapis.com/gmail/v1/users/${email}/messages?access_token=${accessToken}`;
+    if (pageToken) link += `&pageToken=${pageToken}`;
+    
     fetch(link)
       .then((response) => response.json())
       .then(async function (data) {
@@ -143,22 +140,8 @@ function getAllEmails(email, accessToken, pageToken, allFiles = []) {
           console.log(data);
           reject("Error occured", data);
         }
-        const newarr = async () => {
-          return Promise.all(
-            createMessage(data,email,accessToken),
-            data.messages.map(async (dd) => {
-              tempStore.id = dd.id;
-              allFiles.push(tempStore);
-              return tempStore;
-            }),
-          );
-        };
-        newarr().then((data) => {
-          console.log(test, " Done");
-          allFiles.concat(data);
-        });
+        createMessage(data, email, accessToken);
         if (data.nextPageToken) {
-          // await sleep(100);
           getAllEmails(email, accessToken, data.nextPageToken, allFiles).then(
             (resAllFiles) => {
               resolve(resAllFiles);
@@ -169,7 +152,6 @@ function getAllEmails(email, accessToken, pageToken, allFiles = []) {
           resolve(allFiles);
           test = 0;
         }
-        // resolve(allFiles);
       });
   });
 }
@@ -182,7 +164,7 @@ function fetchEmails(email, id, accessToken) {
       .then((allEmails) => {
         // console.log(id);
         try {
-          var fromAddr = allEmails.payload.headers.find((obj) => {
+          let fromAddr = allEmails.payload.headers.find((obj) => {
             return obj.name === "From";
           });
           // const re = /[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/m;
@@ -231,26 +213,54 @@ app.post("/api/v1/Emails", authenticateJWT, (req, res) => {
   getAllEmails(req.id.user, req.aToken, "", []).then((response) => {
     console.log(response);
   });
-  res.sendStatus(200).json({"status":"queued"});
+  res.sendStatus(200).json({ status: "queued" });
 });
 
-app.get("/api/v1/EmailMessages", authenticateJWT,async (req, res) => {
-  var Data = await Messages.find({email:req.id.user}).select('_id email_uid fromAddr rootDomain');
-  var uniqueRootDomains = Data.map((item) => item.rootDomain)
+app.get("/api/v1/EmailMessages", authenticateJWT, async (req, res) => {
+  let Data = await Messages.find({ email: req.id.user }).select(
+    "_id email_uid fromAddr rootDomain"
+  );
+  let uniqueRootDomains = Data.map((item) => item.rootDomain).filter(
+    (value, index, self) => self.indexOf(value) === index
+  );
+
+  let allData = uniqueRootDomains
+    .map((rD) => {
+      let rootDomain = rD;
+      let emailFromSubDomain = Data.filter((item) => item.rootDomain == rD).map(
+        (fDR) => fDR.fromAddr
+      );
+
+      let uniqueEmail = emailFromSubDomain
+        .map((item) => item)
         .filter((value, index, self) => self.indexOf(value) === index);
 
-        var allData = uniqueRootDomains.map(rD => {
-          var temporaryArr = {};
-          temporaryArr.rootDomain = rD;
-          temporaryArr.emailFromSubDomain = Data.filter((item) => item.rootDomain == rD);
-          temporaryArr.count = Object.keys(temporaryArr.emailFromSubDomain).length;
-          return temporaryArr;
+      let processData = uniqueEmail
+        .map((uE) => {
+          let recipient = uE;
+
+          let count = 0;
+          emailFromSubDomain.map((eFSD) => {
+            if (eFSD === uE) {
+              count += 1;
+            }
+          });
+          return { recipient, count };
         })
-        allData.sort(function (a, b) {
+        .sort(function (a, b) {
           return b.count - a.count;
         });
-  res.json(allData);
 
+      let emailsFromSubDomain = processData;
+      let totalCount = Object.keys(emailFromSubDomain).length;
+      return { rootDomain, emailsFromSubDomain, totalCount };
+    })
+    .sort(function (a, b) {
+      return b.totalCount - a.totalCount;
+    });
+  mainCount = Object.keys(Data).length;
+
+  res.json({allData,mainCount});
 });
 
 app.listen(5000, () => console.log(`App listening on port ${5000}!`));
