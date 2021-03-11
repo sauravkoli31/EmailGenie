@@ -3,7 +3,7 @@ import { useDispatch,useSelector } from "react-redux";
 import { genieEmailpulled } from "../redux/userinfo"
 
 
-function CardFe() {
+function ProfileDetails() {
   const genieInfo = useSelector((state) => state.userInfo);
   const dispatch = useDispatch();
 
@@ -54,4 +54,4 @@ function CardFe() {
   );
 }
 
-export default CardFe;
+export default ProfileDetails;
