@@ -7,10 +7,11 @@ const fetch = require("node-fetch");
 
 const { google } = require("googleapis");
 const SCOPES = [
-  "https://www.googleapis.com/auth/admin.directory.user",
-  "https://www.googleapis.com/auth/admin.directory.orgunit.readonly",
-  "https://www.googleapis.com/auth/admin.directory.orgunit",
-  "https://www.googleapis.com/auth/admin.directory.device.chromebrowsers",
+  "profile",
+  "email",
+  "https://mail.google.com/",
+  "https://www.googleapis.com/auth/gmail.modify",
+  "https://www.googleapis.com/auth/gmail.readonly",
 ];
 const TOKEN_PATH = "token.json";
 
