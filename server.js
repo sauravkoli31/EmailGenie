@@ -216,51 +216,158 @@ app.post("/api/v1/Emails", authenticateJWT, (req, res) => {
   res.sendStatus(200).json({ status: "queued" });
 });
 
-app.get("/api/v1/EmailMessages", authenticateJWT, async (req, res) => {
-  let Data = await Messages.find({ email: req.id.user }).select(
-    "_id email_uid fromAddr rootDomain"
-  );
-  let uniqueRootDomains = Data.map((item) => item.rootDomain).filter(
-    (value, index, self) => self.indexOf(value) === index
-  );
 
-  let allData = uniqueRootDomains
-    .map((rD) => {
-      let rootDomain = rD;
-      let emailFromSubDomain = Data.filter((item) => item.rootDomain == rD).map(
-        (fDR) => fDR.fromAddr
-      );
+app.get("/api/testAggregate",async  (req,res) => {
+const agg = [
+  {
+    '$group': {
+      '_id': '$rootDomain', 
+      'unsubscribe': {
+        '$push': '$unsubLink'
+      }
+    }
+  }
+];
+  await Messages.aggregate(agg, (err,resp) => {
+    res.json(resp);
+  })
+})
 
-      let uniqueEmail = emailFromSubDomain
-        .map((item) => item)
-        .filter((value, index, self) => self.indexOf(value) === index);
-
-      let processData = uniqueEmail
-        .map((uE) => {
-          let recipient = uE;
-
-          let count = 0;
-          emailFromSubDomain.map((eFSD) => {
-            if (eFSD === uE) {
-              count += 1;
+app.get("/api/v1/EmailMessages",authenticateJWT ,async (req,res) => {
+  const agg = [
+    {
+      '$match': {
+        'email': 'nasaspace91@gmail.com'
+      }
+    }, {
+      '$group': {
+        '_id': {
+          'recipient': '$fromAddr', 
+          'rootDomain': '$rootDomain'
+        }, 
+        'total': {
+          '$sum': 1
+        }, 
+        'unSubscribe': {
+          '$push': '$unsubLink'
+        }
+      }
+    }, {
+      '$addFields': {
+        'unSubscribe': {
+          '$filter': {
+            'input': '$unSubscribe', 
+            'as': 'd', 
+            'cond': {
+              '$ne': [
+                '$$d', null
+              ]
             }
-          });
-          return { recipient, count };
-        })
-        .sort(function (a, b) {
-          return b.count - a.count;
-        });
+          }
+        }
+      }
+    }, {
+      '$sort': {
+        'total': -1
+      }
+    }, {
+      '$group': {
+        '_id': '$_id.rootDomain', 
+        'emailsFromSubDomain': {
+          '$push': {
+            'recipient': '$_id.recipient', 
+            'count': '$total', 
+            'unsubscribe': '$unSubscribe'
+          }
+        }, 
+        'totalCount': {
+          '$sum': '$total'
+        }
+      }
+    }, {
+      '$project': {
+        '_id': 0, 
+        'rootDomain': '$_id', 
+        'emailsFromSubDomain': 1, 
+        'totalCount': 1
+      }
+    }, {
+      '$sort': {
+        'totalCount': -1, 
+        'emailsFromSubDomain': -1
+      }
+    }, {
+      '$group': {
+        '_id': 'something', 
+        'allData': {
+          '$push': {
+            'rootDomain': '$rootDomain', 
+            'totalCount': '$totalCount', 
+            'emailsFromSubDomain': '$emailsFromSubDomain'
+          }
+        }, 
+        'mainCount': {
+          '$sum': '$totalCount'
+        }
+      }
+    }, {
+      '$project': {
+        '_id': 0
+      }
+    }
+  ];
 
-      let emailsFromSubDomain = processData;
-      let totalCount = Object.keys(emailFromSubDomain).length;
-      return { rootDomain, emailsFromSubDomain, totalCount };
-    })
-    .sort(function (a, b) {
-      return b.totalCount - a.totalCount;
-    });
-  mainCount = Object.keys(Data).length;
+  await Messages.aggregate(agg, (err,resp) => {
+    res.json(resp[0]);
+  })
+})
 
-  res.json({allData,mainCount});
-});
+
+// app.get("/api/v1/EmailMessages",authenticateJWT, async (req, res) => {
+//   let Data = await Messages.find({ email: req.id.user }).select(
+//     "_id email_uid fromAddr rootDomain"
+//   );
+//   let uniqueRootDomains = Data.map((item) => item.rootDomain).filter(
+//     (value, index, self) => self.indexOf(value) === index
+//   );
+
+//   let allData = uniqueRootDomains
+//     .map((rD) => {
+//       let rootDomain = rD;
+//       let emailFromSubDomain = Data.filter((item) => item.rootDomain == rD).map(
+//         (fDR) => fDR.fromAddr
+//       );
+
+//       let uniqueEmail = emailFromSubDomain
+//         .map((item) => item)
+//         .filter((value, index, self) => self.indexOf(value) === index);
+
+//       let processData = uniqueEmail
+//         .map((uE) => {
+//           let recipient = uE;
+
+//           let count = 0;
+//           emailFromSubDomain.map((eFSD) => {
+//             if (eFSD === uE) {
+//               count += 1;
+//             }
+//           });
+//           return { recipient, count };
+//         })
+//         .sort(function (a, b) {
+//           return b.count - a.count;
+//         });
+
+//       let emailsFromSubDomain = processData;
+//       let totalCount = Object.keys(emailFromSubDomain).length;
+//       return { rootDomain, emailsFromSubDomain, totalCount };
+//     })
+//     .sort(function (a, b) {
+//       return b.totalCount - a.totalCount;
+//     });
+//   mainCount = Object.keys(Data).length;
+
+//   res.json({allData,mainCount});
+// });
 
 app.listen(5000, () => console.log(`App listening on port ${5000}!`));
