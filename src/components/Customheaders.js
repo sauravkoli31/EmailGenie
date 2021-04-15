@@ -70,11 +70,10 @@ function Customheaders() {
           ) : (
             <>
               <GoogleLogin
-                clientId={process.env.REACT_APP_rci}
+                clientId="354176919491-sasdo6153985nqd9gr560m22kcunvnd8.apps.googleusercontent.com"
                 buttonText="Login"
                 scope={config.scope}
                 onSuccess={login}
-                isSignedIn={true}
                 className="glass"
               />
             </>

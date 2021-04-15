@@ -5,6 +5,7 @@ import { Container, Modal, Card, Row, Col, Button } from "react-bootstrap";
 import Modalview from "./Modalview";
 import BootstrapTable from "react-bootstrap-table-next";
 import paginationFactory from "react-bootstrap-table2-paginator";
+import { genieEmailDB } from "../redux/userinfo";
 
 export default function Emails() {
   //Redux
@@ -37,16 +38,29 @@ export default function Emails() {
         <>
           <div>
             {Array.isArray(row.unsubscribe) && row.unsubscribe.length > 0 ? (
-              <a href="/unsubLinks" data-unsublinks={row.unsubscribe}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
+                  onClick={() => clickedUnsub(row.unsubscribe)}
+                  cursor="pointer"
                 >
-                  <path d="M18.5 13c-1.93 0-3.5 1.57-3.5 3.5s1.57 3.5 3.5 3.5 3.5-1.57 3.5-3.5-1.57-3.5-3.5-3.5zm2 4h-4v-1h4v1zm-6.95 0c-.02-.17-.05-.33-.05-.5 0-2.76 2.24-5 5-5 .92 0 1.76.26 2.5.69V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h8.55zM12 10.5L5 7V5l7 3.5L19 5v2l-7 3.5z" />
+                  <defs>
+                    <linearGradient
+                      id="myGradient"
+                      gradientTransform="rotate(45)"
+                    >
+                      <stop offset="35%" stop-color="orange" />
+                      <stop offset="95%" stop-color="red" />
+                    </linearGradient>
+                  </defs>
+                  <path
+                    d="M18.5 13c-1.93 0-3.5 1.57-3.5 3.5s1.57 3.5 3.5 3.5 3.5-1.57 3.5-3.5-1.57-3.5-3.5-3.5zm2 4h-4v-1h4v1zm-6.95 0c-.02-.17-.05-.33-.05-.5 0-2.76 2.24-5 5-5 .92 0 1.76.26 2.5.69V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h8.55zM12 10.5L5 7V5l7 3.5L19 5v2l-7 3.5z"
+                    fill="url(#myGradient)"
+                  />
                 </svg>
-              </a>
+              
             ) : (
               <></>
             )}
@@ -61,8 +75,23 @@ export default function Emails() {
   ];
 
   const open = (id) => {
-    console.log(modalRef.current[id], id);
     modalRef.current[id].openModal();
+  };
+
+  const clickedUnsub = (links) => {
+    console.log(links);
+    for(let link in links){
+    var requestOptions = {
+    method: 'GET',
+    redirect: 'follow',
+    mode:'no-cors'
+  };
+  
+  fetch("https://l.engage.canva.com/ss/c/SGIckvMXEMMWyyBsBumKhyFmXQQzIYONw2wHwEsCdVb8K2IvTUG7e0wTxwiJNi6Bjj7Bxlx9BNrUg7S81p3lY2Uc_WibR0Cxx5db5xxdmwlFxwbXxbKjHTiUCCVRbgqWdGaVhGScXwDmKw1qoYMX9b-PIGqvh5lyLCbh_UQoLEzT7ILbY78M-JA7Bp9NDsX7-CKK7_f1gI6vJQnWV7BYuKmBWNQ_6vgHmKV8SZhr7NXRmpnlAVsfXYXTL3ZuyYTsleZSL9RRkjpHHDLyUSNcBZimGpGC1bTIy0XnhqsnEnD3QGk68E_X3x6ZsMwDuGu-sx8jsyNCiZaCuNAXTRA6QmnHoRN3PUgui36Z5E8EBoJ_tVqJc6VYnIF4BAIHfBs-_eRHt3oUKu-06VveSvKqCuuyEUAbbARsw5n-Ubjq-MoHQD14ahoRANBP_MjJ_C0SML4UwiqfVyVlsewPghnvMtkgC6LzKPtJlmXzIG-fOuzB8gqYsb0YCFF3Pg_2mFapIHd7ceJt-uQKpOCVYFeHJB3xtqi35OX5j6qqdaPeShAGqlEIZ_uEAcJDxHbbqAcjJiEiRyLUHQEI2-aXZnsEidtcgOzFVZGiBWggamzfA6ROKotHAO7y8dC0yHGSMWj5CxZTr4WMqrsTtHzYQnmXFCdM_0EFCWV96mSdnkZSEeY/3aj/d6yJh83DQiulDejZGbUFig/h8/g0wOsmdctwRcQ2kYKlCInfm-oOWyz2ZnipnZJZ0UtfM", requestOptions)
+    .then(response => console.log(response))
+    .catch(error => console.log('error', error));
+
+    }
   };
 
   useEffect(() => {
@@ -88,6 +117,7 @@ export default function Emails() {
         .then((jsonData) => {
           updateData(jsonData.allData);
           console.log(jsonData);
+          dispatch(genieEmailDB(jsonData.mainCount));
           if (jsonData.mainCount < genieInfo.userTotalEmail) {
             console.log(
               "evaluated true",
@@ -129,8 +159,8 @@ export default function Emails() {
       }
     }
 
-    // setTimeout(fetchData, 1000);
-    fetchData();
+    setTimeout(fetchData, 1000);
+    // fetchData();
   }, [genieInfo.userTotalEmail]);
 
   return (
@@ -190,7 +220,7 @@ export default function Emails() {
                           <div className="fadeIn first">
                             <img
                               src={
-                                "https://s2.googleusercontent.com/s2/favicons?sz=32&domain=" +
+                                "https://s2.googleusercontent.com/s2/favicons?sz=64&domain=" +
                                 addr.rootDomain
                               }
                               style={{ borderRadius: "4px" }}
