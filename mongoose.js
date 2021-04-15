@@ -1,9 +1,6 @@
 'use strict';
 
 var mongoose = require('mongoose');
-const { flushSync } = require('react-dom');
-require("dotenv").config();
-
 var Schema = mongoose.Schema;
 
 module.exports = function () {
