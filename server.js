@@ -199,6 +199,11 @@ app.post("/logout", authenticateJWT, async (req, res) => {
   await User.deleteOne({ email: req.id.user }, function (err) {
     if (err) console.log(err);
     console.log("Successful deletion");
+  });
+
+  await Messages.deleteMany({ email: req.id.user }, function (err) {
+    if(err) console.log(err);
+    console.log("Successful deletion");
     res.send("OK");
   });
 });
@@ -237,7 +242,7 @@ app.get("/api/v1/EmailMessages",authenticateJWT ,async (req,res) => {
   const agg = [
     {
       '$match': {
-        'email': 'nasaspace91@gmail.com'
+        'email': req.id.user
       }
     }, {
       '$group': {

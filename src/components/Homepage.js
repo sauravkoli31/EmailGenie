@@ -8,7 +8,7 @@ function Homepage() {
         <div className="col-lg-6 my-auto">
           <div className="my-3">
           <h2 className="display-3 ">Email Genie</h2>
-          <div>Lorem Ipsum fuck you</div>
+          <div style={{fontWeight: 800, fontSize: "21px"}}>Take control of your mailbox</div>
           </div>
         </div>
         <div className="col-lg-6 my-auto">

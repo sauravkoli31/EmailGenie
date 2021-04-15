@@ -16,7 +16,8 @@ export const userinfoSlice = createSlice({
             userAccess_Token:initialUser?.uInfo.userAccess_Token || null
         },
         userIsLoggedIn: initialUser?.userIsLoggedIn || false,
-        userTotalEmail:initialUser?.userEmailpulled || 0
+        userTotalEmail:initialUser?.userTotalEmail || 0,
+        userEmailInDB:initialUser?.userEmailInDB || 0
     },
     reducers:{
         genieLogIn: (state,action) =>{
@@ -37,15 +38,20 @@ export const userinfoSlice = createSlice({
             state.uInfo.userImageUrl = null;
             state.uInfo.userAccess_Token = null;
             state.userTotalEmail = 0;
+            state.userEmailInDB = 0;
             localStorage.removeItem('aladin')
         },
         genieEmailpulled: (state,action) => {
             state.userTotalEmail = action.payload;
             localStorage.setItem('aladin', btoa(JSON.stringify(state)));
+        },
+        genieEmailDB: (state,action) => {
+            state.userEmailInDB = action.payload;
+            localStorage.setItem('aladin', btoa(JSON.stringify(state)));
         }
     }
 });
 
-export const { genieLogIn, genieLogOut,genieEmailpulled } = userinfoSlice.actions;
+export const { genieLogIn, genieLogOut,genieEmailpulled, genieEmailDB } = userinfoSlice.actions;
 
 export default userinfoSlice.reducer
